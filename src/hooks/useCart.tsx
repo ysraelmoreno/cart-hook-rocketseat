@@ -1,7 +1,13 @@
-import { createContext, ReactNode, useContext, useState } from 'react';
-import { toast } from 'react-toastify';
-import { api } from '../services/api';
-import { Product, Stock } from '../types';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { toast } from "react-toastify";
+import { api } from "../services/api";
+import { Product, Stock } from "../types";
 
 interface CartProviderProps {
   children: ReactNode;
@@ -34,17 +40,38 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const addProduct = async (productId: number) => {
     try {
-      // TODO
+      const stock = await api.get<Stock>(`/stock/${productId}`);
+      const response = await api.get<Product>(`/products/${productId}`);
+
+      const findProduct = cart.find((product) => product.id === productId);
+
+      if (findProduct) {
+        if (findProduct.amount >= stock.data.amount) {
+          toast.error("Produto sem estoque");
+          return;
+        }
+
+        findProduct.amount += 1;
+        setCart([...cart]);
+        return;
+      }
+
+      const product = {
+        ...response.data,
+        amount: 1,
+      };
+
+      setCart([...cart, product]);
     } catch {
-      // TODO
+      toast.error("Produto não encontrado");
     }
   };
 
   const removeProduct = (productId: number) => {
     try {
-      // TODO
+      setCart(cart.filter((product) => product.id !== productId));
     } catch {
-      // TODO
+      toast.error("Produto não encontrado ou não pode ser removido");
     }
   };
 
@@ -53,11 +80,32 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount,
   }: UpdateProductAmount) => {
     try {
-      // TODO
+      const stock = await api.get<Stock>(`/stock/${productId}`);
+      const findProduct = cart.find((product) => product.id === productId);
+
+      if (!findProduct) {
+        toast.error("Produto não encontrado");
+        return;
+      }
+
+      const newAmount = findProduct.amount + amount;
+
+      if (newAmount >= stock.data.amount) {
+        toast.error("Produto sem estoque");
+        return;
+      }
+
+      findProduct.amount = newAmount;
+
+      setCart([...cart]);
     } catch {
-      // TODO
+      toast.error("Não foi possível atualizar o produto");
     }
   };
+
+  useEffect(() => {
+    console.log(cart);
+  }, [cart]);
 
   return (
     <CartContext.Provider
