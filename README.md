@@ -1,6 +1,6 @@
 <h1 align="center">cart-hook-rocketseat</h1>
 
-## Understanding how to create a system of cart to improve the user experience.
+<h4 align="center">Understanding how to create a system of cart to improve the user experience.</h4>
 
 A study based on a lesson created by Rocketseat to understand how cart systems created with CartContext can help and improve the user experience on the web flow of the application
 
